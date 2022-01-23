@@ -143,6 +143,7 @@ class Usuario {
         }
 
     }
+
     public function update($login, $password)
     {
         $this->setDeslogin($login);
@@ -158,6 +159,23 @@ class Usuario {
             ':ID'=>$this->getID()
         ));
     }
+
+    public function delete()
+    {
+        $sql = new Sql();
+
+        $sql->query("DELETE FROM tb_usuarios WHERE id= :ID", array(
+
+            ':ID'=>$this->getID()
+        ));
+
+        $this->setId(0);
+        $this->setDeslogin("");
+        $this->setDessenha("");
+        $this->setDtcadastro(new DateTime());
+    }
+
+
    
 
 
