@@ -55,7 +55,7 @@ class Usuario {
 
     }
 
-    public function loadById($id){ //carregue pelo ID
+    public function loadById($id){
 
         $sql = new Sql();
 
@@ -67,19 +67,13 @@ class Usuario {
 
         if (count($results) > 0) {
 
-            $row = $results[0];
-
-            $this->setId($row['id']);
-            $this->setDeslogin($row['deslogin']);
-            $this->setDessenha($row['dessenha']);
-            $this->setDtcadastro(new DateTime($row['dtcadastro']));
+            $this->setData($results[0]);
 
         }
 
     }
 
-    public static function getList()
-    {
+    public static function getList(){
 
         $sql = new Sql();
 
@@ -87,42 +81,92 @@ class Usuario {
 
     }
 
-    public static function search($login)
-    {
+    public static function search($login){
+
         $sql = new Sql();
 
-        return $sql->select ("SELECT * FROM tb_usuarios WHERE deslogin LIKE :SEARCH ORDER BY deslogin", array(
-            ':SEARCH'=> "%".$login."%"
+        return $sql->select("SELECT * FROM tb_usuarios WHERE deslogin LIKE :SEARCH ORDER BY deslogin", array(
+
+            ':SEARCH'=>"%".$login."%"
 
         ));
+
     }
 
+    public function login($login, $password){
 
-    public function login($login, $password)
-    {
-            $sql = new Sql();
+        $sql = new Sql();
 
         $results = $sql->select("SELECT * FROM tb_usuarios WHERE deslogin = :LOGIN AND dessenha = :PASSWORD", array(
 
             ":LOGIN"=>$login,
-            ":PASSWORD"=>$password
+            ":PASSWORD"=>$password,
 
         ));
 
         if (count($results) > 0) {
 
-            $row = $results[0];
-
-            $this->setId($row['id']);
-            $this->setDeslogin($row['deslogin']);
-            $this->setDessenha($row['dessenha']);
-            $this->setDtcadastro(new DateTime($row['dtcadastro']));
+            $this->setData($results[0]);
 
         } else {
 
-            throw new Exception("Login e/ou senha inválidos.",);            
+            throw new Exception("Login e/ou senha inválidos.");
 
         }
+
+    }
+
+    public function setData($data){
+
+        $this->setId($data['id']);
+        $this->setDeslogin($data['deslogin']);
+        $this->setDessenha($data['dessenha']);
+        $this->setDtcadastro(new DateTime($data['dtcadastro']));
+
+    }
+
+    public function insert(){
+
+        $sql = new Sql();
+
+        $results = $sql->select("CALL sp_usuarios_insert(:LOGIN, :PASSWORD)", array( //criou procedure no mysql (usa o CALL no mysql e usa parenteses, se fosse mslserver seria EXECUTE)
+
+            ':LOGIN'=>$this->getDeslogin(),
+            ':PASSWORD'=>$this->getDessenha()
+
+        ));
+
+        if (count($results) > 0) {
+
+            $this->setData($results[0]);
+
+        }
+
+    }
+    public function update($login, $password)
+    {
+        $this->setDeslogin($login);
+        $this->setDessenha($password);
+
+
+        $sql = new Sql();
+
+        $sql->query("UPDATE tb_usuarios SET deslogin = :LOGIN, dessenha = :PASSWORD WHERE id = :ID", array(
+
+             ':LOGIN'=>$this->getDeslogin(),
+            ':PASSWORD'=>$this->getDessenha(),
+            ':ID'=>$this->getID()
+        ));
+    }
+   
+
+
+    public function __construct($login = "", $password = "") //se inserir os dados ele chama, senão ele chama sem dados mesmo assim
+    {
+
+        $this->setDeslogin($login);
+        $this->setDessenha($password);
+
     }
 
 
